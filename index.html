@@ -1,29 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<!--TODO: THE METADATA OF THE WEBSITE CAN BE EDITED USING THE META TAGS BELOW -->
   <meta charset="utf-8">
-  <meta name="description"
-        content="Template project website. Replace this line with a one-sentence summary of your project.">
-  <meta name="keywords" content="project website, template, research">
+  <meta name="description" content="We investigate whether degrading the frame rate of visual observations — inspired by biological Critical Flicker Fusion — can improve reinforcement learning performance, comparing a 35 Hz baseline, 5 Hz stroboscopic agent, and an active-vision agent that learns when to use high-frequency perception.">
+  <meta name="keywords" content="reinforcement learning, visual RL, frame rate degradation, active perception, Critical Flicker Fusion, LSTM PPO, MiniWorld, stroboscopic">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Project Title</title>
-<!------------------------------------------------------------------------->
+  <title>CFF-Inspired Frame Rate Degradation in RL</title>
 
-
-
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
-        rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/bulma.min.css">
   <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
   <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
   <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
   <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="icon" href="./static/images/favicon.svg">
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/fontawesome.all.min.js"></script>
@@ -39,517 +29,940 @@
     };
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    /* Architecture diagram */
+    .arch-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 1.5rem 0;
+    }
+    .arch-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 90px;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .arch-box small { font-weight: 400; font-size: 0.75rem; margin-top: 2px; }
+    .arch-arrow {
+      font-size: 1.4rem;
+      color: #888;
+      padding: 0 0.25rem;
+      align-self: center;
+    }
+    .arch-input  { background: #e8e8e8; color: #333; }
+    .arch-cnn    { background: #bdd7ee; color: #1f4e79; }
+    .arch-fc     { background: #dce6f1; color: #1f4e79; }
+    .arch-lstm   { background: #4472c4; color: #fff; }
+    .arch-ac     { background: #375623; color: #fff; }
+
+    /* Perception mode cards */
+    .perception-card {
+      border-left: 5px solid;
+      padding: 0.9rem 1.2rem;
+      border-radius: 4px;
+      background: #fafafa;
+      margin-bottom: 0.75rem;
+    }
+    .perception-card.agent-a { border-color: #4472c4; }
+    .perception-card.agent-b { border-color: #ed7d31; }
+    .perception-card.agent-c { border-color: #548235; }
+    .perception-card .agent-label {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.2rem;
+    }
+
+    /* Ablation cards */
+    .ablation-card {
+      border-radius: 8px;
+      padding: 1.2rem 1.4rem;
+      height: 100%;
+    }
+    .ablation-card .ablation-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .ablation-card .ablation-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .ablation-card .ablation-delta {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      float: right;
+    }
+    .ablation-neg { background: #f14668; color: #fff; }
+    .ablation-pos { background: #48c78e; color: #fff; }
+
+    /* Results table grouping */
+    .table thead th { background: #4472c4; color: #fff; }
+    .table .group-header td {
+      background: #dce6f1;
+      font-style: italic;
+      font-weight: 700;
+      text-align: center;
+      color: #1f4e79;
+    }
+    .table .best-row { font-weight: 700; }
+
+    /* Section subtitles */
+    .section-subtitle { color: #555; font-size: 1rem; margin-bottom: 1.5rem; }
+  </style>
 </head>
 <body>
 
-<!--TODO: THE HEADLINE OF THE WEBPAGE: TITLE AND AUTHORS -->
-
+<!-- ===================== TITLE & AUTHORS ===================== -->
 <section class="hero">
   <div class="hero-body">
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">Project Title</h1>
+          <h1 class="title is-1 publication-title">CFF-Inspired Frame Rate Degradation in RL</h1>
           <div class="is-size-5 publication-authors">
             <span class="author-block">
-              <a href="https://people.epfl.ch/">John Doe</a>,
+              <a href="https://people.epfl.ch/393635">Tamar Alphaidze</a>,
             </span>
             <span class="author-block">
-              <a href="https://people.epfl.ch/">Alice Smith</a>,
+              <a href="https://people.epfl.ch/388918">Sajal Chaurasia</a>,
             </span>
             <span class="author-block">
-              <a href="https://people.epfl.ch/">Bob Johnson</a>,
+              <a href="https://people.epfl.ch/394237">Manuel Curnis</a>,
             </span>
             <span class="author-block">
-              <a href="https://people.epfl.ch/">Jane Doe</a>
+              <a href="https://people.epfl.ch/395246">Alessandro Di Maria</a>
             </span>
           </div>
+          <div class="is-size-5 publication-authors" style="margin-top:0.4rem;">
+            <span class="author-block" style="color:#555;">EPFL &middot; CS-503 Visual Intelligence &middot; May 2026</span>
+          </div>
 
-<!------------------------------------------------------------------------->
-
-<!--TODO: THE LINKS RELATED TO THE PROJECT -->
           <div class="column has-text-centered">
             <div class="publication-links">
-              <!-- PDF Link. -->
+              <!-- GitHub Link -->
               <span class="link-block">
-                <a href="https://arxiv.org"
+                <a href="https://github.com/talphaidze/CFF-InspiredFrameRateDegradationRL"
                    class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Document</span>
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
                 </a>
-              </span>
-              <!-- YouTube Link. -->
-              <span class="link-block">
-                <a href="https://www.youtube.com"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-youtube"></i>
-                  </span>
-                  <span>Video</span>
-                </a>
-              </span>
-              <!-- GitHub Link. -->
-              <span class="link-block">
-                <a href="https://github.com/tarhanefe/cs503-project-template"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-github"></i>
-                  </span>
-                  <span>Project Code</span>
-                  </a>
-              </span>
-              <!-- Dataset Link. -->
-                <span class="link-block">
-                  <a href="https://drive.google.com/drive/folders/13W_453e-h2TWAfAnp6Ga00TYwEzTnMtg?usp=sharing"
-                    class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                      <i class="fab fa-google-drive"></i>
-                    </span>
-                    <span>Dataset/Drive</span>
-                  </a>
-                </span>
-              <!-- GitHub Website Link. -->
-              <span class="link-block">
-                <a href="https://github.com/tarhanefe/cs503-project-template"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-github"></i>
-                  </span>
-                  <span>Website Code</span>
-                  </a>
               </span>
             </div>
-
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
-<!------------------------------------------------------------------------->
 
-<!--TODO: THE LINKS RELATED TO THE PROJECT -->
-
+<!-- ===================== TEASER ===================== -->
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
-      <!-- TODO: Replace with your teaser image, gif or video file. Choose something that represents your project. -->
-      <video id="teaser" autoplay muted loop playsinline height="100%">
-        <source src="./static/videos/teaser.mp4"
-                type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-        <span class="dnerf">Project Name</span> one-sentence teaser about what your project does.
+      <div class="columns is-centered">
+        <div class="column is-half">
+          <h3 class="has-text-centered has-text-weight-semibold" style="margin-bottom:0.5rem;">
+            <span style="color:#4472c4;">Agent A — 35 Hz baseline</span>
+          </h3>
+          <video controls muted loop playsinline width="100%">
+            <source src="./static/videos/episode_agent_a.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="column is-half">
+          <h3 class="has-text-centered has-text-weight-semibold" style="margin-bottom:0.5rem;">
+            <span style="color:#548235;">Agent C v2 — Active Vision</span>
+          </h3>
+          <video controls muted loop playsinline width="100%">
+            <source src="./static/videos/episode_c2_vc00005_tvc.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <h2 class="subtitle has-text-centered" style="margin-top:1rem;">
+        Both agents navigate MiniWorld FourRoomsHard. Agent C v2 learns <em>when</em> to use
+        high-frequency vision, concentrating it near doorways and obstacles — achieving
+        <strong>98.8% success</strong> and <strong>9.8 collisions</strong> vs Agent A's 85.24.
       </h2>
     </div>
   </div>
 </section>
 
-<!------------------------------------------------------------------------->
-
-<!--TODO: ABSTRACT OF THE PROJECT -->
-
+<!-- ===================== ABSTRACT + OVERVIEW ===================== -->
 <section class="section">
   <div class="container is-max-desktop">
-    <!-- Abstract. -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            <!-- TODO: Replace this abstract with your own project summary (3-5 sentences). -->
-            [Problem] Briefly describe the problem your project tackles and why it matters.
+            Biological vision does not process every frame at full temporal resolution — a phenomenon
+            known as <strong>Critical Flicker Fusion (CFF)</strong>. Most reinforcement learning agents,
+            however, receive a fresh visual frame at every environment step, introducing temporal
+            redundancy and raising the question: is continuous high-frequency observation actually
+            necessary for effective learning?
           </p>
           <p>
-            [Approach] Explain your main idea, model, or system in one to two sentences.
+            We train three agent variants that are architecturally identical (Nature-CNN + LSTM +
+            PPO) but differ only in their observation rate: <strong>Agent A</strong> receives a fresh
+            64&times;64 grayscale frame every step (35&thinsp;Hz baseline); <strong>Agent B</strong>
+            holds each frame for 7 steps via a <em>StroboscopicWrapper</em> (~5&thinsp;Hz); and
+            <strong>Agent C v2</strong> doubles the action space to 3&thinsp;moves &times;
+            2&thinsp;frequency modes, paying a small per-step cost for high-frequency perception and
+            learning when to activate it. We evaluate all agents on MiniWorld FourRoomsHard under
+            both a <em>static</em> regime (fixed obstacles, tests sample efficiency) and a
+            <em>dynamic</em> regime (moving obstacles, tests reactive fidelity).
           </p>
           <p>
-            [Results] Summarize key outcomes, such as quantitative improvements, qualitative
-            observations, and main conclusions.
+            On the hard dynamic environment, Agent C v2 achieves <strong>98.8% success</strong>
+            with only <strong>9.8 collisions per episode</strong>, compared to Agent A's 93.3% /
+            85.24 collisions and Agent B's catastrophic 26.4% failure rate. Spatial analysis reveals
+            that C v2 concentrates high-frequency perception near doorways and pillars — an
+            interpretable, emergent form of active attention. Stroboscopic degradation alone is
+            insufficient for dynamic tasks, but adaptive perception delivers Pareto-optimal
+            performance across both speed and collision avoidance.
           </p>
         </div>
       </div>
     </div>
-    <!--/ Abstract. -->
-<!------------------------------------------------------------------------->
-<!--TODO: LIST OF ITEMS IN THE WEBSITE -->
 
-<div class="columns is-centered has-text-centered">
-        <div class="column is-full-width">
-
-          <h2 class="title is-3">Overview</h2>
-          <div class="tile is-ancestor is-centered" style="vertical-align: middle;">
-            <div class="tile is-parent">
-              <a href="#intro" class="tile is-child box">
-                <p class="subtitle">
-                  <font size="-1">Introduction</font>
-                </p>
-              </a>
-            </div>
-
-            <div class="tile is-parent">
-              <a href="#related-work" class="tile is-child box">
-                <p class="subtitle">
-                  <font size="-1">Related Works</font>
-                </p>
-              </a>
-            </div>
-
-            <div class="tile is-parent">
-              <a href="#method" class="tile is-child box">
-                <p class="subtitle">
-                  <font size="-1">Methodology</font>
-                </p>
-              </a>
-            </div>
-
-            <div class="tile is-parent">
-              <a href="#results" class="tile is-child box">
-                <p class="subtitle">
-                  <font size="-1">Results</font>
-                </p>
-              </a>
-            </div>
-
-            <div class="tile is-parent">
-              <a href="#conclusion" class="tile is-child box">
-                <p class="subtitle">
-                  <font size="-1">Conclusion and Limitations</font>
-                </p>
-              </a>
-            </div>
-<!--- TODO: Remove this part, this is here to show you possible visualizations used in the website ---------------->
-
-            <div class="tile is-parent">
-              <a href="#visual_items" class="tile is-child box">
-                <p class="subtitle">
-                  <font size="-1">Visual Items</font>
-                </p>
-              </a>
-            </div>
+    <!-- Overview navigation tiles -->
+    <div class="columns is-centered has-text-centered" style="margin-top:1rem;">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Overview</h2>
+        <div class="tile is-ancestor is-centered">
+          <div class="tile is-parent">
+            <a href="#intro" class="tile is-child box">
+              <p class="subtitle"><font size="-1">Introduction</font></p>
+            </a>
           </div>
-
+          <div class="tile is-parent">
+            <a href="#related-work" class="tile is-child box">
+              <p class="subtitle"><font size="-1">Related Works</font></p>
+            </a>
+          </div>
+          <div class="tile is-parent">
+            <a href="#method" class="tile is-child box">
+              <p class="subtitle"><font size="-1">Methodology</font></p>
+            </a>
+          </div>
+          <div class="tile is-parent">
+            <a href="#results" class="tile is-child box">
+              <p class="subtitle"><font size="-1">Results</font></p>
+            </a>
+          </div>
+          <div class="tile is-parent">
+            <a href="#conclusion" class="tile is-child box">
+              <p class="subtitle"><font size="-1">Conclusion</font></p>
+            </a>
+          </div>
         </div>
       </div>
-<!------------------------------------------------------------------------->
+    </div>
   </div>
 </section>
 
-<!-----------------------------TODO: INTRODUCTION-------------------------------->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <!-- Introduction. -->
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3" id="intro">I. Introduction</h2>
-          <div class="content has-text-justified">
-            <p>
-              The introduction part of the report can be provided here
-            </p>
-          </div>
-        </div>
-      </div>
-      <!--/ Introduction. -->
-    </div>
-  </section>
-<!------------------------------------------------------------------------->
-
-<!-----------------------------TODO: RELATED WORKS-------------------------------->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <!-- Related Works. -->
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3" id="related-work">II. Related Works</h2>
-          <div class="content has-text-justified">
-            <p>
-              The related works part of the report can be provided here
-            </p>
-          </div>
-        </div>
-      </div>
-      <!--/ Related Works. -->
-    </div>
-  </section>
-<!------------------------------------------------------------------------->
-
-<!-----------------------------TODO: METHODOLOGY-------------------------------->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <!-- Methodology. -->
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3" id="method">III. Methodology</h2>
-          <div class="content has-text-justified">
-            <p>
-              The methodology part of the report can be provided here
-            </p>
-          </div>
-        </div>
-      </div>
-      <!--/ Methodology. -->
-    </div>
-  </section>
-
-<!------------------------------------------------------------------------->
-
-<!-----------------------------TODO: RESULTS-------------------------------->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <!-- Results. -->
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3" id="results">IV. Results</h2>
-          <div class="content has-text-justified">
-            <p>
-              The results part of the report can be provided here
-            </p>
-          </div>
-        </div>
-      </div>
-      <!--/ Results. -->
-    </div>
-  </section>
-<!------------------------------------------------------------------------->
-
-<!-----------------------------TODO: DISCUSSION-------------------------------->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <!-- Conclusion and Limitations. -->
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3" id="conclusion">V. Conclusion and Limitations</h2>
-          <div class="content has-text-justified">
-            <p>
-              The conclusion and limitations part of the report can be provided here
-            </p>
-          </div>
-        </div>
-      </div>
-      <!--/ Conclusion and Limitations. -->
-    </div>
-  </section>
-<!------------------------------------------------------------------------->
-
-<!-----------------------------TODO: VISUAL ITEMS THAT CAN BE USED-------------------------------->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <!-- Visual Items. -->
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3" id="visual_items">V. Visual Items</h2>
-          <div class="content has-text-justified">
-            <p>
-            Here you can see possible visualizations that can be used in this website 
-            </p>
-          </div>
-        <h3 class="title is-4">Video Clip</h3>
-       <!-- Video can be added like this -->   
-        <div class="content has-text-centered">
-          <video id="replay-video"
-                 controls
-                 muted
-                 preload
-                 playsinline
-                 width="75%">
-            <source src="./static/videos/replay.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-       <!---------------------------------> 
-           
-      <h3 class="title is-4">Image Interpolation with Slider</h3>
-       <!-- Image can be added like this -->
-        <div class="columns is-vcentered interpolation-panel">
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_start.jpg"
-                 class="interpolation-image"
-                 alt="Interpolate start reference image."/>
-            <p>Start Frame</p>
-          </div>
-          <div class="column interpolation-video-column">
-            <div id="interpolation-image-wrapper">
-              Loading...
-            </div>
-            <input class="slider is-fullwidth is-large is-info"
-                   id="interpolation-slider"
-                   step="1" min="0" max="100" value="0" type="range">
-          </div>
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_end.jpg"
-                 class="interpolation-image"
-                 alt="Interpolation end reference image."/>
-            <p class="is-bold">End Frame</p>
-          </div>
-        </div>
-        
-<h3 class="title is-4">Double Column Media Display</h3>
-    <div class="columns is-centered is-multiline">
-      <!-- Column 1. -->
-      <div class="column is-half">
-        <div class="content">
-          <h3 class="title is-5">Column 1</h3>
+<!-- ===================== I. INTRODUCTION ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3" id="intro">I. Introduction</h2>
+        <div class="content has-text-justified">
           <p>
-            Add a short description for the first video/image.
+            Animals perceive the world at widely varying temporal resolutions — honeybees process
+            around 300 frames per second, humans around 60, and the critical threshold below which
+            flickering appears continuous (the <strong>Critical Flicker Fusion frequency</strong>)
+            is shaped by metabolic rate and ecological demand [Healy et al., 2013].
+            Evolution has tuned perceptual sampling rates to balance energy cost against
+            information gain, rather than maximising temporal resolution unconditionally.
           </p>
-          <video id="dollyzoom" autoplay controls muted loop playsinline width="100%">
-            <source src="./static/videos/dollyzoom-stacked.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-      <!--/ Column 1 -->
-
-      <!-- Column 2 -->
-      <div class="column is-half">
-        <div class="content">
-          <h3 class="title is-5">Column 2</h3>
           <p>
-            Add a short description for the second video/image.
+            Reinforcement learning agents typically receive a fresh visual observation at every
+            environment step, mimicking always-on, full-resolution sensing. This design choice
+            introduces two problems: (1) consecutive frames are highly correlated, offering
+            little additional information per step; and (2) visual sensing costs compute and,
+            in physical systems, energy. Yet the effect of reducing observation frequency is
+            surprisingly under-studied — most prior work on temporal abstraction focuses on
+            <em>action</em> repetition rather than <em>observation</em> frequency.
           </p>
-          <video id="matting-video" controls playsinline width="100%">
-            <source src="./static/videos/matting.mp4"
-                    type="video/mp4">
-          </video>
+          <p>
+            We frame two complementary research questions:
+          </p>
+          <ol>
+            <li>
+              <strong>Does degrading the observation frame rate hurt or help sample efficiency?</strong>
+              Running the visual encoder at 5&thinsp;Hz instead of 35&thinsp;Hz removes temporal
+              correlation and forces the agent to rely on slower, more discrete state changes —
+              potentially simplifying learning in static environments.
+            </li>
+            <li>
+              <strong>Can an agent learn <em>when</em> to spend high-frequency perception?</strong>
+              Rather than committing to a fixed rate, Agent C v2 chooses, on every step, whether
+              to observe at low or high frequency, subject to a small cost per high-freq step.
+              This implements a minimal form of active vision as a learned policy.
+            </li>
+          </ol>
+          <p>
+            We test these hypotheses on MiniWorld FourRoomsHard [Chevalier-Boisvert et al.],
+            a 3D egocentric navigation environment with pillars, distractors, and (in the dynamic
+            variant) moving obstacles. All three agents share an identical LSTM PPO backbone
+            and are trained under the same hyperparameters — only the perception wrapper differs.
+            Our main contributions are:
+          </p>
+          <ul>
+            <li>A controlled three-agent comparison isolating the effect of observation frequency</li>
+            <li>A per-step active-vision action formulation with a tunable vision cost</li>
+            <li>Spatial and temporal analysis of when and where active vision is used</li>
+            <li>Evidence that adaptive perception delivers Pareto-optimal results on dynamic tasks,
+                while pure stroboscopic degradation fails</li>
+          </ul>
         </div>
       </div>
-      <!--/ Column 2 -->
     </div>
-  <!--------------------------------->
-<h3 class="title is-4">Card Media Display</h3>
-      <div class="columns is-centered">
-        <div class="column is-three-quarters">
-          <div align="center" class="box">
-            <img src="static/images/related_2.gif"
-              alt="3D Bezier curves are used for representing 3D sketches of objects.">
-            <h5 class="subtitle has-text-centered">
-              <font size="-0.7">
-                <span style="font-weight:normal">
-                  Write about the media displayed in the card here. You can also add a link to the media if needed.
-                </span>
-              </font>
-            </h5>
-          </div>
-        </div>
-      </div>
-<!--------------------------------->
-<h3 class="title is-4">LaTeX Equation</h3>
-  
-Format the equations using LaTeX and add them to the website like this:
-    <p>
-        \[
-        D_{\mathrm{KL}}(P \parallel Q) =
-        \sum_{x} P(x)\,\log\!\left(\frac{P(x)}{Q(x)}\right)
-        \]
-    </p>
-<!--------------------------------->
-
-<h3 class="title is-4">Sliding Media Display</h3>
-    <section class="section">
-      <div class="container is-max-desktop">
-        <div id="dataset-carousel" class="carousel results-carousel">
-          <a href="./static/gifs/bike.gif" data-lightbox="image">
-            <img src="./static/gifs/bike.gif" alt="Bike Object">
-          </a>
-
-          <a href="./static/gifs/duck.gif" data-lightbox="image">
-            <img src="./static/gifs/duck.gif" alt="Duck Object">
-          </a>
-
-          <a href="./static/gifs/horse.gif" data-lightbox="image">
-            <img src="./static/gifs/horse.gif" alt="Horse Object">
-          </a>
-
-          <a href="./static/gifs/rose.gif" data-lightbox="image">
-            <img src="./static/gifs/rose.gif" alt="Rose Object">
-          </a>
-        </div>
-      </div>
-    </section>
-<!--------------------------------->
-<h3 class="title is-4">Table</h3>
-
-<div class="content has-text-justified">
-  <p>
-    The table format below can be used for results and other purposes.
-  </p>
-  <div class="table-container">
-    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Metric 1</th>
-          <th>Metric 2</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Baseline</td>
-          <td>0.00</td>
-          <td>0.00</td>
-          <td>Reference setup</td>
-        </tr>
-        <tr>
-          <td>Method A</td>
-          <td>0.00</td>
-          <td>0.00</td>
-          <td>First variant</td>
-        </tr>
-        <tr>
-          <td>Method B</td>
-          <td>0.00</td>
-          <td>0.00</td>
-          <td>Second variant</td>
-        </tr>
-      </tbody>
-    </table>
   </div>
-</div>
+</section>
 
-<!--------------------------------->
-<h3 class="title is-4">Interactive Plot</h3>
-<div class="box">
-  <iframe src="./static/plotly/interactive_plot.html" frameborder="0" width="100%"
-    height="500px"></iframe>
-</div>
+<!-- ===================== II. RELATED WORKS ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3" id="related-work">II. Related Works</h2>
+        <div class="content has-text-justified">
 
-<!--------------------------------->
+          <h3 class="title is-4">Frame Skipping in RL</h3>
+          <p>
+            Braylan et al. [2015] showed that the frame-skip parameter is one of the most
+            powerful design choices in Atari RL, with large effects on both convergence speed
+            and final performance. Subsequent work by Lakshminarayanan et al. [2017] and
+            Kalyanakrishnan et al. [2021] systematically analysed when repeating actions for
+            multiple steps helps vs. hurts. Dabney et al. [2017] introduced
+            <em>Dynamic Frame Skip DQN</em>, allowing the agent to choose how many times to
+            repeat each action. Critically, all of these works manipulate how long an action
+            is held, while the <em>visual observation</em> is still refreshed at the underlying
+            environment rate. Our work is complementary: we fix action frequency but vary
+            <em>observation</em> frequency, a dimension that has received far less attention.
+          </p>
+
+          <h3 class="title is-4">Active Perception</h3>
+          <p>
+            Bajcsy [1988] argued that perception should be goal-directed and resource-aware —
+            a sensor should decide <em>where</em> and <em>when</em> to look based on task demand.
+            More recently, Shang and Ryoo [2023] applied this principle to RL under limited
+            visual observability, training agents to select which regions of the image to foviate.
+            Karamzade et al. [2024] addressed learning under delayed observations using world
+            models. Our Agent C v2 takes a different angle: instead of selecting spatial regions,
+            it selects <em>temporal frequency</em> as the resource to manage, trading a
+            per-step vision cost for high-resolution observation when uncertainty is high.
+          </p>
+
+          <h3 class="title is-4">Visual RL and Sample Efficiency</h3>
+          <p>
+            Deep Q-Networks [Mnih et al., 2015] established visual RL on Atari, but sample
+            efficiency remained a central challenge. DrQ [Kostrikov et al., 2021] addressed this
+            via image augmentation, while Dreamer [Hafner et al., 2020] uses a world model for
+            imagination-based planning. None of these approaches treat observation frequency as
+            a resource; they assume full-rate sensing throughout training and evaluation. Our
+            work asks whether a simpler intervention — reducing the observation rate — can
+            provide complementary efficiency gains.
+          </p>
+
+          <h3 class="title is-4">Biological CFF and Stroboscopic Training</h3>
+          <p>
+            Healy et al. [2013] demonstrated that CFF scales with mass-specific metabolic rate
+            across vertebrates, providing a biological grounding for our hypothesis that
+            lower temporal resolution is not just a constraint but an adaptation. Recent work
+            in sports science [Zwierko et al., 2024; Wang et al., 2025] has shown that
+            stroboscopic training — deliberately occluding vision during practice — can improve
+            attentional and perceptual-motor performance in human athletes. This supports the
+            idea that reduced temporal resolution can act as a form of useful regularisation,
+            rather than simply removing information.
+          </p>
 
         </div>
       </div>
-      <!--/ Visual Items. -->
     </div>
-  </section>
+  </div>
+</section>
 
-<!------------------------------------------------------------------------->
+<!-- ===================== III. METHODOLOGY ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3" id="method">III. Methodology</h2>
+        <div class="content has-text-justified">
 
-<footer class="footer">
-            <div class="container">
-              <div class="content has-text-centered">
-                <!-- Optional icon link (e.g., to GitHub repo) -->
-              </div>
+          <!-- A. Environments -->
+          <h3 class="title is-4">A. Environments</h3>
+          <p>
+            We use <strong>MiniWorld FourRoomsHard</strong>, a custom extension of the MiniWorld
+            3D egocentric navigation library [Chevalier-Boisvert et al.]. The agent observes a
+            64&times;64 grayscale first-person view and must reach an orange goal box within
+            500 steps. The hard variant adds four fixed pillar obstacles and 1–3 coloured ball
+            distractors that do not indicate the goal location. The action space contains three
+            discrete moves: turn left, turn right (10° per step), and move forward.
+          </p>
+          <p>
+            We evaluate under two regimes:
+          </p>
+          <ul>
+            <li>
+              <strong>Static:</strong> Walls, pillars, and goal are fixed across episodes.
+              Tests whether reduced frame rate improves sample efficiency.
+            </li>
+            <li>
+              <strong>Dynamic:</strong> All of the above, plus a moving obstacle that
+              traverses the maze. Tests whether the agent can react to unpredictable events
+              with limited or adaptive perception.
+            </li>
+          </ul>
 
-              <div class="columns is-centered">
-                <div class="column is-8">
-                  <div class="content">
-                    <h6 class="title is-6">Individual Contributions</h6>
-                    <p>
-                      Add the contributions of each team member here.
-                    </p>
-                    <p><em>
-                        This website is based on the <a href="https://github.com/nerfies/nerfies.github.io"
-                          target="_blank">Nerfies website template</a>,
-                        which is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"
-                          target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
-                      </em></p>
-                  </div>
+          <div class="columns is-centered" style="margin-top:1rem;">
+            <div class="column is-half has-text-centered">
+              <figure class="image">
+                <img src="./static/images/env_fp.png" alt="First-person view of FourRoomsHard">
+              </figure>
+              <p class="is-size-7 has-text-grey">First-person agent view (64×64 grayscale)</p>
+            </div>
+            <div class="column is-half has-text-centered">
+              <figure class="image">
+                <img src="./static/images/env_top.png" alt="Top-down view of FourRoomsHard">
+              </figure>
+              <p class="is-size-7 has-text-grey">Top-down map (pillars shown as dark squares)</p>
+            </div>
+          </div>
+
+          <!-- B. Architecture -->
+          <h3 class="title is-4" style="margin-top:1.5rem;">B. Architecture</h3>
+          <p>
+            All three agents share an identical neural network backbone trained with
+            <strong>Proximal Policy Optimisation (PPO)</strong> in the CleanRL single-file style,
+            with 16 parallel environments and 256-step rollouts.
+          </p>
+
+          <!-- Architecture diagram -->
+          <div class="arch-diagram">
+            <div class="arch-box arch-input">Image<br><small>k × 64 × 64</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box arch-cnn">CNN<br><small>Encoder</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box arch-fc">FC<br><small>512</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box arch-lstm">LSTM<br><small>256</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box arch-ac">Actor<br>Critic</div>
+          </div>
+          <p class="is-size-7 has-text-grey has-text-centered" style="margin-top:0.25rem;">
+            Nature-CNN (3 conv layers) + FC(512) + LSTM(256) &middot; CleanRL &middot;
+            16 parallel envs &middot; 256-step rollouts &middot; 6M total timesteps
+          </p>
+
+          <p style="margin-top:1rem;">
+            The LSTM provides temporal context without requiring frame stacking, which is
+            important for Agents B and C v2 where consecutive frames may be identical (stale).
+            The CNN encoder is shared between the actor and critic. An optional proprioceptive
+            extension appends previous action (one-hot), previous reward, and heading
+            (sin/cos) to the LSTM input.
+          </p>
+
+          <!-- C. Perception Wrappers -->
+          <h3 class="title is-4" style="margin-top:1.5rem;">C. Perception Wrappers</h3>
+          <p>
+            All perception differences are isolated in <code>gym.Wrapper</code> classes, so the
+            PPO agent itself is unchanged. Three wrappers correspond to the three agent groups:
+          </p>
+
+          <div class="perception-card agent-a">
+            <div class="agent-label" style="color:#4472c4;">Agent A — 35 Hz (Baseline)</div>
+            <strong>FrameStack4Wrapper</strong> — the agent receives a stack of the last 4
+            grayscale frames. Each new environment step produces a fresh observation.
+            This is the standard visual RL setup.
+          </div>
+
+          <div class="perception-card agent-b">
+            <div class="agent-label" style="color:#ed7d31;">Agent B — 5 Hz (Stroboscopic)</div>
+            <strong>StroboscopicWrapper(k=7)</strong> — each frame is held for 7 environment
+            steps before being replaced (~5 Hz effective). Physics and actions still run at
+            35 Hz; only the visual observation is "frozen." The LSTM (rather than a frame
+            stack) provides temporal context. The agent effectively experiences
+            motion-blur-free, discrete state snapshots.
+          </div>
+
+          <div class="perception-card agent-c">
+            <div class="agent-label" style="color:#548235;">Agent C v2 — Active Vision</div>
+            <strong>ActiveVisionWrapper</strong> — the action space is doubled to
+            3&thinsp;moves &times; 2&thinsp;frequency modes = 6 actions. On each step the
+            agent chooses both <em>where to go</em> and <em>whether to observe at high or
+            low frequency</em>. High-frequency perception (35 Hz, always fresh frame) incurs
+            a per-step vision cost \(c_\text{vision}\) subtracted from reward:
+            \[
+              r' = r - \mathbb{1}[\text{high-freq}] \times c_\text{vision}
+            \]
+            where \(c_\text{vision} = 0.0001\). Low-frequency steps use the stroboscopic
+            wrapper (k=7). An optional <strong>LSTM gate curriculum</strong>
+            (<code>gate_alpha</code> annealed from 0→1 over 2M–6M steps) gradually zeros the
+            CNN features on stale frames, encouraging the agent to rely on LSTM memory rather
+            than outdated visual information once the gate is active.
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== IV. EXPERIMENTS ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3" id="results">IV. Experiments</h2>
+        <div class="content has-text-justified">
+
+          <!-- A. Setup -->
+          <h3 class="title is-4">A. Experimental Setup</h3>
+          <p>
+            All agents are trained for 6M environment steps on MiniWorld FourRoomsHard with
+            the hyperparameters below. Evaluation uses 50 episodes per seed, averaged over
+            3 seeds (1000–1002). The baseline for all comparisons is Agent A at 35 Hz.
+          </p>
+
+          <div class="table-container">
+            <table class="table is-bordered is-narrow is-hoverable" style="max-width:600px; margin:auto;">
+              <thead>
+                <tr><th>Hyperparameter</th><th>Value</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Total timesteps</td><td>6M</td></tr>
+                <tr><td>Parallel environments</td><td>16</td></tr>
+                <tr><td>Rollout steps</td><td>256</td></tr>
+                <tr><td>Learning rate</td><td>2.5 × 10⁻⁴</td></tr>
+                <tr><td>Discount γ</td><td>0.99</td></tr>
+                <tr><td>GAE λ</td><td>0.95</td></tr>
+                <tr><td>PPO clip coefficient</td><td>0.1</td></tr>
+                <tr><td>Entropy coefficient</td><td>0.01 (phase 1: 0.02)</td></tr>
+                <tr><td>LSTM hidden size</td><td>256</td></tr>
+                <tr><td>Turn step</td><td>10°</td></tr>
+                <tr><td>Strobe k (Agent B / C v2 LF)</td><td>7 (~5 Hz)</td></tr>
+                <tr><td>Vision cost c (Agent C v2)</td><td>0.0001</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- B. Performance Comparison -->
+          <h3 class="title is-4" style="margin-top:2rem;">B. Performance Comparison</h3>
+          <p>
+            We report success rate (mean ± std over 3 seeds), mean episode length (Steps),
+            Stops-and-Looks (S&amp;Ls, Agent C v1 only), high-frequency action rate (HF Rate),
+            and mean collisions per episode (Hard Dynamic only).
+          </p>
+
+          <div class="table-container">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Success Rate</th>
+                  <th>Steps</th>
+                  <th>S&amp;Ls</th>
+                  <th>HF Rate</th>
+                  <th>Collisions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="group-header"><td colspan="6">Easy Static</td></tr>
+                <tr>
+                  <td>Agent A (35 Hz)</td>
+                  <td>0.984 ± 0.008</td>
+                  <td>59.17</td><td>—</td><td>—</td><td>—</td>
+                </tr>
+                <tr>
+                  <td>Agent B (5 Hz)</td>
+                  <td>0.704 ± 0.038</td>
+                  <td>132.38</td><td>—</td><td>—</td><td>—</td>
+                </tr>
+                <tr>
+                  <td>Agent C v1</td>
+                  <td>0.776 ± 0.008</td>
+                  <td>115.92</td><td>13.74</td><td>—</td><td>—</td>
+                </tr>
+                <tr>
+                  <td>Agent C v2</td>
+                  <td>0.904 ± 0.034</td>
+                  <td>88.61</td><td>—</td><td>0.713</td><td>—</td>
+                </tr>
+
+                <tr class="group-header"><td colspan="6">Hard Static</td></tr>
+                <tr>
+                  <td>Agent A (35 Hz)</td>
+                  <td>0.840 ± 0.031</td>
+                  <td>345.25</td><td>—</td><td>—</td><td>—</td>
+                </tr>
+                <tr>
+                  <td>Agent B (5 Hz)</td>
+                  <td>0.780 ± 0.042</td>
+                  <td>433.19</td><td>—</td><td>—</td><td>—</td>
+                </tr>
+                <tr>
+                  <td>C v2 (static-trained)</td>
+                  <td>0.852 ± 0.055</td>
+                  <td>—</td><td>—</td><td>0.807</td><td>—</td>
+                </tr>
+                <tr>
+                  <td>C v2 (dynamic-trained)</td>
+                  <td>0.888 ± 0.016</td>
+                  <td>258.18</td><td>—</td><td>0.842</td><td>—</td>
+                </tr>
+
+                <tr class="group-header"><td colspan="6">Hard Dynamic</td></tr>
+                <tr>
+                  <td>Agent A (35 Hz)</td>
+                  <td>0.933 ± 0.024</td>
+                  <td>279.97</td><td>—</td><td>—</td><td>85.24</td>
+                </tr>
+                <tr>
+                  <td>Agent B (5 Hz)</td>
+                  <td>0.264 ± 0.034</td>
+                  <td>802.78</td><td>—</td><td>—</td><td>174.75</td>
+                </tr>
+                <tr class="best-row">
+                  <td>Agent C v2</td>
+                  <td><strong>0.988 ± 0.009</strong></td>
+                  <td><strong>189.41</strong></td><td>—</td>
+                  <td>0.823</td>
+                  <td><strong>9.8</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="is-size-7 has-text-grey" style="margin-top:0.3rem;">
+            S&amp;Ls = Stops-and-Look actions (Agent C v1 only). HF Rate = fraction of steps
+            using high-frequency perception. Collisions reported for Hard Dynamic only.
+            Best results per column in <strong>bold</strong>.
+          </p>
+
+          <p style="margin-top:1rem;">
+            On the <strong>Easy Static</strong> environment, Agent A's full frame rate is
+            advantageous — it achieves 98.4% success with the fewest steps. However, Agent C v2
+            closes the gap significantly (90.4%) while using high-frequency perception only 71%
+            of the time, suggesting it has learned to be selective. Agent B at 5 Hz performs
+            markedly worse (70.4%), indicating that pure stroboscopic degradation is not
+            beneficial when the task is tractable.
+          </p>
+          <p>
+            On the <strong>Hard Dynamic</strong> environment, the contrast is stark. Agent B
+            collapses to 26.4% — the moving obstacle triggers temporal aliasing that the fixed
+            5 Hz rate cannot handle. Agent A (33 Hz, continuous) achieves 93.3% but accumulates
+            85.24 collisions per episode. <strong>Agent C v2 dominates on all metrics</strong>:
+            98.8% success, 189 steps (fastest navigation), and only 9.8 collisions — a
+            nearly 9&times; reduction relative to Agent A.
+          </p>
+
+          <!-- C. Active Vision Analysis -->
+          <h3 class="title is-4" style="margin-top:2rem;">C. Active Vision Analysis</h3>
+          <p>
+            To understand <em>where</em> Agent C v2 uses high-frequency perception, we record
+            episode rollouts and accumulate the fraction of steps in each spatial cell where the
+            agent chose high-freq action. The heatmaps below compare two vision-cost settings
+            (vc2en5 = 2×10⁻⁵ and vc1en4 = 1×10⁻⁴) broken down by action type.
+          </p>
+
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <figure class="image">
+                <img src="./static/images/hf_spatial_heatmap.png"
+                     alt="Spatial heatmap of high-frequency action usage by Agent C v2">
+              </figure>
+              <p class="is-size-7 has-text-grey">
+                Spatial distribution of high-frequency vision usage in FourRoomsHard.
+                Red = more high-freq; blue = more low-freq. White diamonds mark doorways;
+                dark squares are pillars; yellow square is the goal.
+                Left column: vc = 2×10⁻⁵ &nbsp;|&nbsp; Right column: vc = 1×10⁻⁴.
+                Rows: all actions / forward only / turns only.
+              </p>
+            </div>
+          </div>
+
+          <p style="margin-top:1rem;">
+            A clear spatial structure emerges: Agent C v2 consistently activates high-frequency
+            perception around <strong>doorways</strong> and near <strong>pillars</strong>,
+            regardless of the vision cost setting. In open areas of rooms, the agent is
+            comfortable using low-frequency (stale) frames. The effect is strongest for turning
+            actions, suggesting the agent has learned that navigating through narrow passages
+            requires up-to-date visual information. A higher vision cost (1×10⁻⁴) produces a
+            more focused, selective pattern while preserving the same qualitative structure.
+          </p>
+
+          <h4 class="title is-5" style="margin-top:1.5rem;">Temporal Analysis</h4>
+          <p>
+            We also examine <em>when</em> within an episode high-freq actions are triggered:
+          </p>
+          <div class="columns is-centered">
+            <div class="column is-three-quarters has-text-centered">
+              <figure class="image">
+                <img src="./static/images/hf_timing.png"
+                     alt="Timing of high-frequency actions during an episode">
+              </figure>
+              <p class="is-size-7 has-text-grey">
+                High-frequency action rate as a function of episode step.
+                The agent modulates perception rate dynamically rather than using a fixed schedule.
+              </p>
+            </div>
+          </div>
+
+          <h4 class="title is-5" style="margin-top:1.5rem;">Episode Videos</h4>
+          <div class="columns is-centered">
+            <div class="column is-half">
+              <h5 class="title is-6 has-text-centered" style="color:#548235;">
+                Agent C v2 — vision cost 1×10⁻⁴
+              </h5>
+              <video controls muted loop playsinline width="100%">
+                <source src="./static/videos/episode_c2_vc0001_tvc.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="column is-half">
+              <h5 class="title is-6 has-text-centered" style="color:#548235;">
+                Agent C v2 — vision cost 5×10⁻⁵
+              </h5>
+              <video controls muted loop playsinline width="100%">
+                <source src="./static/videos/episode_c2_vc00005_tvc.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          <p class="is-size-7 has-text-grey has-text-centered">
+            Heatmap overlays show spatial high-frequency usage for the same episodes.
+          </p>
+          <div class="columns is-centered" style="margin-top:0.5rem;">
+            <div class="column is-half has-text-centered">
+              <img src="./static/images/heatmap_vc0001.png"
+                   alt="Heatmap for vc1en4 episode" style="max-width:100%;">
+            </div>
+            <div class="column is-half has-text-centered">
+              <img src="./static/images/heatmap_vc00005.png"
+                   alt="Heatmap for vc00005 episode" style="max-width:100%;">
+            </div>
+          </div>
+
+          <!-- D. Ablations -->
+          <h3 class="title is-4" style="margin-top:2rem;">D. Ablations</h3>
+          <p>
+            Three key design changes were made during development, each with a measurable impact
+            on performance. Success rates are reported on the Hard Static environment unless noted.
+          </p>
+
+          <div class="columns is-centered" style="margin-top:1rem;">
+            <!-- Ablation 1 -->
+            <div class="column is-one-third">
+              <div class="ablation-card" style="background:#fff5f7; border:1px solid #f14668;">
+                <div class="ablation-num">01</div>
+                <div class="ablation-title">
+                  C v1 — discarded
+                  <span class="ablation-delta ablation-neg">Δ −94%</span>
                 </div>
+                <p style="font-size:0.9rem;">
+                  The original <em>STOP_AND_LOOK</em> action (pause movement to get a fresh frame)
+                  proved unnatural: it conflates movement policy with perception policy in a single
+                  action. The agent failed to learn to use it effectively.
+                  <br><br>
+                  Easy: <strong>0.776</strong> → Hard: <strong>0.044</strong>
+                </p>
               </div>
             </div>
-          </footer>
+
+            <!-- Ablation 2 -->
+            <div class="column is-one-third">
+              <div class="ablation-card" style="background:#f6fff8; border:1px solid #48c78e;">
+                <div class="ablation-num">02</div>
+                <div class="ablation-title">
+                  Turn angle: 10° → 45°
+                  <span class="ablation-delta ablation-pos">Δ +81%</span>
+                </div>
+                <p style="font-size:0.9rem;">
+                  Fine-grained 10° turns gave Agent B a <em>higher-dimensional</em> navigation
+                  problem — requiring more precise perception to avoid overturning. Switching to
+                  coarser 45° turns reduced the burden and significantly boosted Agent B's success
+                  on easy static tasks.
+                  <br><br>
+                  At 10°: <strong>0.388</strong> → At 45°: <strong>0.704</strong>
+                </p>
+              </div>
+            </div>
+
+            <!-- Ablation 3 -->
+            <div class="column is-one-third">
+              <div class="ablation-card" style="background:#f6fff8; border:1px solid #48c78e;">
+                <div class="ablation-num">03</div>
+                <div class="ablation-title">
+                  C v2 training procedure
+                  <span class="ablation-delta ablation-pos">Δ +165%</span>
+                </div>
+                <p style="font-size:0.9rem;">
+                  The initial C v2 training failed to learn useful perception switching.
+                  Adding the LSTM gate curriculum (gate_alpha 0→1 over 2M–6M steps) plus
+                  a higher entropy coefficient in phase 1 gave the agent time to explore
+                  both frequency modes before committing to a perception policy.
+                  <br><br>
+                  Before: <strong>0.373</strong> → After: <strong>0.988</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- E. Learning Curves -->
+          <h3 class="title is-4" style="margin-top:2rem;">E. Final Performance Summary</h3>
+          <p>
+            The bar charts below summarise final evaluation performance for each agent on
+            the dynamic and static environments (based on checkpoint evaluations over 3 seeds).
+          </p>
+          <div class="columns is-centered">
+            <div class="column is-half has-text-centered">
+              <figure class="image">
+                <img src="./static/images/learning_curves_dynamic.png"
+                     alt="Final success rate on Hard Dynamic environment">
+              </figure>
+              <p class="is-size-7 has-text-grey">Hard Dynamic: Agent C v2 achieves 98.8%,
+              far ahead of Agent A (93.3%) and Agent B (26.4%)</p>
+            </div>
+            <div class="column is-half has-text-centered">
+              <figure class="image">
+                <img src="./static/images/learning_curves_static.png"
+                     alt="Final success rate on Hard Static environment">
+              </figure>
+              <p class="is-size-7 has-text-grey">Hard Static: C v2 (dynamic-trained) generalises
+              best (88.8%), with Agent A at 84.0% and Agent B at 78.0%</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== V. CONCLUSION ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3" id="conclusion">V. Conclusion and Limitations</h2>
+        <div class="content has-text-justified">
+
+          <h3 class="title is-4">Key Findings</h3>
+          <p>
+            This work investigated whether CFF-inspired frame rate degradation can improve
+            reinforcement learning performance, and whether agents can learn to control their
+            own perceptual rate. Three conclusions stand out:
+          </p>
+          <ol>
+            <li>
+              <strong>Stroboscopic degradation alone is insufficient for dynamic tasks.</strong>
+              Agent B (5 Hz) catastrophically fails on the dynamic environment (26.4% success,
+              174.75 collisions) because the fixed low rate causes temporal aliasing when obstacles
+              move. Simple frame-rate reduction is only viable in static, low-complexity settings.
+            </li>
+            <li>
+              <strong>Active perception delivers Pareto-optimal performance.</strong>
+              Agent C v2 simultaneously achieves the highest success rate, fastest navigation,
+              and fewest collisions on the hard dynamic environment — demonstrating that an agent
+              can learn to budget its perceptual resources effectively when given the right
+              incentive structure (the vision cost term).
+            </li>
+            <li>
+              <strong>Spatial attention is interpretable and task-relevant.</strong>
+              The emergent pattern of high-frequency usage — concentrated at doorways and near
+              pillars — reflects genuinely useful decision points. This spatial structure is
+              robust across vision cost settings and provides evidence that C v2 has learned a
+              principled policy for <em>when</em> to look carefully.
+            </li>
+          </ol>
+
+          <h3 class="title is-4">Limitations</h3>
+          <ul>
+            <li>
+              <strong>Single environment family.</strong> All experiments use MiniWorld, a
+              relatively simple 3D navigation domain. It remains to be seen whether the same
+              benefits hold in richer environments (Atari, continuous control, real robotics).
+            </li>
+            <li>
+              <strong>No oracle comparison at matched compute.</strong> Agent C v2 uses fewer
+              high-frequency CNN forward passes than Agent A. A fair comparison would match
+              total compute; it is possible Agent A trained for longer at lower resolution
+              would also improve.
+            </li>
+            <li>
+              <strong>C v2 requires a careful training curriculum.</strong> Without the gate
+              warmup schedule and elevated entropy coefficient, Agent C v2 collapses to
+              always-high-freq or always-low-freq. The training procedure is sensitive and
+              adds hyperparameters.
+            </li>
+            <li>
+              <strong>Vision cost must be hand-tuned.</strong> The value \(c_\text{vision} = 0.0001\)
+              was found by ablation. A method for automatically scheduling this cost would
+              make the approach more practical.
+            </li>
+          </ul>
+
+          <h3 class="title is-4">Future Work</h3>
+          <p>
+            Natural extensions include applying the active-vision formulation to real robotic
+            platforms where visual sensing has genuine energy costs, extending to continuous
+            action spaces, and investigating whether the LSTM gate curriculum generalises to
+            other forms of active sensing (e.g., spatial foveation or event cameras). The
+            finding that reduced frame rate can be complementary to standard RL
+            improvements like DrQ or Dreamer also warrants investigation.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <h6 class="title is-6">Individual Contributions</h6>
+          <p>
+            <!-- TODO: Fill in individual contributions for each team member -->
+            <strong>Tamar Alphaidze:</strong> [Please fill in your contributions here]<br>
+            <strong>Sajal Chaurasia:</strong> [Please fill in your contributions here]<br>
+            <strong>Manuel Curnis:</strong> [Please fill in your contributions here]<br>
+            <strong>Alessandro Di Maria:</strong> [Please fill in your contributions here]
+          </p>
+          <p><em>
+            This website is based on the
+            <a href="https://github.com/nerfies/nerfies.github.io" target="_blank">Nerfies website template</a>,
+            which is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">
+              Creative Commons Attribution-ShareAlike 4.0 International License
+            </a>.
+          </em></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
 
 </body>
 </html>
