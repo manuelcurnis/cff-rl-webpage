@@ -685,15 +685,16 @@
           </p>
 
           <div class="columns is-centered">
-            <div class="column is-two-thirds has-text-centered">
+            <div class="column has-text-centered">
               <figure class="image">
-                <img src="./static/images/heatmap_vc2en5.png"
-                     alt="Spatial heatmap of high-frequency action usage — Agent C v2 vc=2e-5">
+                <img src="./static/images/heatmap_dynamic_comparison.jpeg"
+                     alt="Spatial HF vision usage — FourRoomsHardDynamic, vc=2e-5 vs vc=1e-4">
               </figure>
               <p class="is-size-7 has-text-grey">
-                Per-episode HF vision usage for Agent C v2 (vc = 2×10⁻⁵), successful episode.
-                Green = high-freq; red = low-freq. Stars mark doorways; grey squares are pillars;
-                red square is the goal. Rows: all actions / forward only / turns only.
+                Spatial HF vision usage in FourRoomsHardDynamic. Orange/red = high-freq; blue = low-freq.
+                Left column: vc = 2×10⁻⁵ &nbsp;|&nbsp; Right column: vc = 1×10⁻⁴.
+                Rows: all actions / forward only / turns only.
+                White diamonds mark doorways; grey squares are pillars; yellow square is the goal.
               </p>
             </div>
           </div>
@@ -704,6 +705,9 @@
             In open areas of rooms, the agent relies on low-frequency (stale) frames.
             The effect is strongest for turning actions, suggesting the agent has learned that
             navigating through narrow passages requires up-to-date visual information.
+            A higher vision cost (1×10⁻⁴) produces a more focused, selective pattern —
+            mostly concentrated near doorways — while the lower cost (2×10⁻⁵) shows broader
+            high-freq usage across the map.
           </p>
 
           <h4 class="title is-5" style="margin-top:1.5rem;">Training Curves — Agent C v2 (vc = 2×10⁻⁵)</h4>
