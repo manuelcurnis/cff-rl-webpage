@@ -913,21 +913,18 @@
                 <source src="./static/videos/episode_c2_vc0001_tvc.mp4" type="video/mp4">
               </video>
             </div>
-            <div class="column is-half">
-              <h5 class="title is-6 has-text-centered" style="color:#548235;">
-                Agent C v2 — vision cost 5×10⁻⁵
-              </h5>
-              <video controls muted loop playsinline width="100%">
-                <source src="./static/videos/episode_c2_vc00005_tvc.mp4" type="video/mp4">
-              </video>
-            </div>
           </div>
+          <p style="margin-top:1rem;">
+            We see the agent use a mix of high- and low-frequency steps during its initial
+            exploration phase; once it locates the goal, it switches to high-frequency steps
+            to avoid collisions with obstacles on the way there.
+          </p>
 
           <!-- D. Ablations -->
           <h3 class="title is-4" style="margin-top:2rem;">D. Ablations</h3>
           <p>
             Three key design changes were made during development, each with a measurable impact
-            on performance. Success rates are reported on the Hard Static environment unless noted.
+            on performance. The success rates are reported.
           </p>
 
           <div class="columns is-centered" style="margin-top:1rem;">
@@ -941,10 +938,10 @@
                 </div>
                 <p style="font-size:0.9rem;">
                   The original <em>STOP_AND_LOOK</em> action (pause movement to get a fresh frame)
-                  proved unnatural: it conflates movement policy with perception policy in a single
-                  action. The agent failed to learn to use it effectively.
+                  is unnatural since organisms do not pause for high perception. Also, 
+                  the agent failed to learn to use it effectively since we get very low performance in Hard Static.
                   <br><br>
-                  Easy: <strong>0.776</strong> → Hard: <strong>0.044</strong>
+                  Easy: <strong>0.776</strong> → Hard Static: <strong>0.044</strong>
                 </p>
               </div>
             </div>
@@ -954,16 +951,20 @@
               <div class="ablation-card" style="background:#f6fff8; border:1px solid #48c78e;">
                 <div class="ablation-num">02</div>
                 <div class="ablation-title">
-                  Turn angle: 10° → 45°
+                  Turn angle: 45° → 10°
                   <span class="ablation-delta ablation-pos">Δ +81%</span>
                 </div>
                 <p style="font-size:0.9rem;">
-                  Fine-grained 10° turns gave Agent B a <em>higher-dimensional</em> navigation
-                  problem — requiring more precise perception to avoid overturning. Switching to
-                  coarser 45° turns reduced the burden and significantly boosted Agent B's success
-                  on easy static tasks.
+                  A 45° turn step proved too coarse: with such large rotations, the view
+                  changes drastically over Agent B's 7-frame hold, amplifying the stroboscopic
+                  gap. Even Agent A's consecutive frames were so dissimilar that its perception
+                  appeared effectively stroboscopic. Reducing the turn step to 10° yields
+                  finer-grained control and smoother frame-to-frame transitions, enabling a
+                  cleaner comparison across agents.
                   <br><br>
-                  At 10°: <strong>0.388</strong> → At 45°: <strong>0.704</strong>
+                  Easy Static:
+                  <br>
+                  Agent B At 45°: <strong>0.388</strong> → At 10°: <strong>0.704</strong>
                 </p>
               </div>
             </div>
@@ -973,7 +974,7 @@
               <div class="ablation-card" style="background:#f6fff8; border:1px solid #48c78e;">
                 <div class="ablation-num">03</div>
                 <div class="ablation-title">
-                  C v2 training procedure
+                  C v2 train procedure
                   <span class="ablation-delta ablation-pos">Δ +165%</span>
                 </div>
                 <p style="font-size:0.9rem;">
@@ -982,6 +983,8 @@
                   a higher entropy coefficient in phase 1 gave the agent time to explore
                   both frequency modes before committing to a perception policy.
                   <br><br>
+                  Hard Dynamic:
+                  <br>
                   Before: <strong>0.373</strong> → After: <strong>0.988</strong>
                 </p>
               </div>
@@ -1017,18 +1020,20 @@
               move. Simple frame-rate reduction is only viable in static, low-complexity settings.
             </li>
             <li>
-              <strong>Active perception delivers Pareto-optimal performance.</strong>
-              Agent C v2 simultaneously achieves the highest success rate, fastest navigation,
-              and fewest collisions on the hard dynamic environment — demonstrating that an agent
-              can learn to budget its perceptual resources effectively when given the right
+              <strong>Active perception delivers the best speed–safety trade-off.</strong>
+              On the hard dynamic environment, Agent C v2 achieves the highest success rate
+              (98.8%) and by far the fewest collisions (9.8 vs. 25.55 for Agent A), at the cost
+              of slightly longer paths (189 vs. 140 steps) — demonstrating that an agent can
+              learn to budget its perceptual resources effectively when given the right
               incentive structure (the vision cost term).
             </li>
             <li>
               <strong>Spatial attention is interpretable and task-relevant.</strong>
-              The emergent pattern of high-frequency usage — concentrated at doorways and near
-              pillars — reflects genuinely useful decision points. This spatial structure is
-              robust across vision cost settings and provides evidence that C v2 has learned a
-              principled policy for <em>when</em> to look carefully.
+              The emergent pattern of high-frequency usage — concentrated in the tunnels
+              connecting rooms and during forward motion toward obstacles — reflects genuinely
+              useful decision points. This spatial structure is robust across vision cost
+              settings and provides evidence that C v2 has learned a principled policy for
+              <em>when</em> to look carefully.
             </li>
           </ol>
 
@@ -1137,10 +1142,10 @@
           <h6 class="title is-6">Individual Contributions</h6>
           <p>
             <!-- TODO: Fill in individual contributions for each team member -->
-            <strong>Tamar Alphaidze:</strong> Agent CV2, eval heatmaps, slides<br>
-            <strong>Sajal Chaurasia:</strong> [Please fill in your contributions here]<br>
-            <strong>Manuel Curnis:</strong> [Please fill in your contributions here]<br>
-            <strong>Alessandro Di Maria:</strong> [Please fill in your contributions here]
+            <strong>Tamar Alphaidze:</strong> Agent CV2 testing, eval heatmaps, slides<br>
+            <strong>Sajal Chaurasia:</strong> Website, Easy Static Results, Agent CV1 testing <br>
+            <strong>Manuel Curnis:</strong> Website, Three Envs setup, PPO Setup, LSTM Gating, Dynamic Results<br>
+            <strong>Alessandro Di Maria:</strong> Hard Static and Dynamic Results, Testing various configs, slides
           </p>
           <p><em>
             This website is based on the
