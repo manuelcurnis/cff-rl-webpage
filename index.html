@@ -398,7 +398,7 @@
             powerful design choices in Atari RL, with large effects on both convergence speed
             and final performance. Subsequent work by Lakshminarayanan et al. [2017] and
             Kalyanakrishnan et al. [2021] systematically analysed when repeating actions for
-            multiple steps helps vs. hurts. Dabney et al. [2017] introduced
+            multiple steps helps vs. hurts. Srinivas et al. [2016] introduced
             <em>Dynamic Frame Skip DQN</em>, allowing the agent to choose how many times to
             repeat each action. Critically, all of these works manipulate how long an action
             is held, while the <em>visual observation</em> is still refreshed at the underlying
@@ -509,7 +509,8 @@
             <strong>Proximal Policy Optimisation (PPO)</strong> in the CleanRL single-file style,
             with 16 parallel environments and 256-step rollouts. The backbone consists of a
             Nature-CNN visual encoder feeding into a fully-connected layer (FC 512), followed
-            by an LSTM (256 hidden units) whose output drives separate actor and critic heads.
+            by an LSTM (256 hidden units) whose output drives separate actor and critic heads. 
+            Temporal dependencies are captured by the LSTM, eliminating the need for a frame-stacking approach.
           </p>
 
           <!-- Architecture diagram -->
@@ -551,17 +552,16 @@
 
           <div class="perception-card agent-a">
             <div class="agent-label" style="color:#4472c4;">Agent A — 35 Hz (Baseline)</div>
-            <strong>FrameStack4Wrapper</strong> — the agent receives a stack of the last 4
-            grayscale frames. Each new environment step produces a fresh observation.
-            This is the standard visual RL setup.
+            The agent receives a single fresh grayscale
+            frame every environment step, so perception runs at
+            the full 35 Hz physics tick. This is the full-frame-rate baseline.
           </div>
 
           <div class="perception-card agent-b">
             <div class="agent-label" style="color:#ed7d31;">Agent B — 5 Hz (Stroboscopic)</div>
             <strong>StroboscopicWrapper(k=7)</strong> — each frame is held for 7 environment
             steps before being replaced (~5 Hz effective). Physics and actions still run at
-            35 Hz; only the visual observation is "frozen." The LSTM (rather than a frame
-            stack) provides temporal context. The agent effectively experiences
+            35 Hz; only the visual observation is "frozen". The agent effectively experiences
             motion-blur-free, discrete state snapshots.
           </div>
 
@@ -571,28 +571,33 @@
             special action: 3&thinsp;moves + 1&thinsp;STOP_AND_LOOK = 4 actions. The agent
             perceives at ~5 Hz by default (stroboscopic, k=7), but can trigger a
             <em>STOP_AND_LOOK</em> action that activates a high-frequency window of
-            35 consecutive fresh frames (≈1 s at 35 Hz). During STOP_AND_LOOK the
+            1 fresh frame. During STOP_AND_LOOK, the
             agent does not move (a null action is executed internally). Unlike
             Agent C v2, <strong>no reward penalty</strong> is applied — the agent
             must learn when pausing to gather visual information is worth the
-            opportunity cost of not moving.
+            opportunity cost of not moving. Compared to Agent C v2, <strong>this keeps the
+            action space compact</strong> — only one extra action, which eases
+            exploration — at the cost of coupling high-frequency perception to
+            stopping, whereas C v2 decouples the two but doubles the action space.
           </div>
 
           <div class="perception-card agent-c">
             <div class="agent-label" style="color:#548235;">Agent C v2 — Active Vision</div>
-            <strong>ActiveVisionWrapper</strong> — the action space is doubled to
-            3&thinsp;moves &times; 2&thinsp;frequency modes = 6 actions. On each step the
+            <strong>ActiveVisionWrapper</strong> — inspired by Srinivas et al. [2016],
+            the action space is doubled to
+            3&thinsp;moves &times; 2&thinsp;frequency modes = 6 actions. On each step, the
             agent chooses both <em>where to go</em> and <em>whether to observe at high or
-            low frequency</em>. High-frequency perception (35 Hz, always fresh frame) incurs
+            low frequency</em> for the next frame. High-frequency perception (35 Hz, always fresh frame) incurs
             a per-step vision cost \(c_\text{vision}\) subtracted from reward:
             \[
               r' = r - \mathbb{1}[\text{high-freq}] \times c_\text{vision}
             \]
-            where \(c_\text{vision} = 0.0001\). Low-frequency steps use the stroboscopic
+            Low-frequency steps use the stroboscopic
             wrapper (k=7). An optional <strong>LSTM gate curriculum</strong>
             (<code>gate_alpha</code> annealed from 0→1 over 2M–6M steps) gradually zeros the
             CNN features on stale frames, encouraging the agent to rely on LSTM memory rather
-            than outdated visual information once the gate is active.
+            than outdated visual information once the gate is active. The parameter \(c_\text{vision}\)  
+            is <strong>tuned manually</strong> to maintain a satisfactory success rate with minimal reliance on high-frequency perception.
           </div>
 
         </div>
