@@ -507,6 +507,19 @@
           </div>
 
           <div class="perception-card agent-c">
+            <div class="agent-label" style="color:#548235;">Agent C v1 — Active Gating</div>
+            <strong>ActiveGatingWrapper</strong> — the action space is extended by one
+            special action: 3&thinsp;moves + 1&thinsp;STOP_AND_LOOK = 4 actions. The agent
+            perceives at ~5 Hz by default (stroboscopic, k=7), but can trigger a
+            <em>STOP_AND_LOOK</em> action that activates a high-frequency window of
+            35 consecutive fresh frames (≈1 s at 35 Hz). During STOP_AND_LOOK the
+            agent does not move (a null action is executed internally). Unlike
+            Agent C v2, <strong>no reward penalty</strong> is applied — the agent
+            must learn when pausing to gather visual information is worth the
+            opportunity cost of not moving.
+          </div>
+
+          <div class="perception-card agent-c">
             <div class="agent-label" style="color:#548235;">Agent C v2 — Active Vision</div>
             <strong>ActiveVisionWrapper</strong> — the action space is doubled to
             3&thinsp;moves &times; 2&thinsp;frequency modes = 6 actions. On each step the
