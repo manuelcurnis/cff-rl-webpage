@@ -837,35 +837,39 @@
           <!-- C. Active Vision Analysis -->
           <h3 class="title is-4" style="margin-top:2rem;">C. Active Vision Analysis</h3>
           <p>
-            To understand <em>where</em> Agent C v2 (vision cost 2×10⁻⁵) uses high-frequency
+            To understand <em>where</em> Agent C v2 uses high-frequency
             perception, we record episode rollouts and accumulate the fraction of steps in each
-            spatial cell where the agent chose the high-freq action, broken down by action type.
+            spatial cell where the agent chose the high-freq action, broken down by action type (forward/turns).
           </p>
 
           <div class="columns is-centered">
             <div class="column has-text-centered">
               <figure class="image">
-                <img src="./static/images/heatmap_dynamic_comparison.jpeg"
+                <img src="./static/images/heatmap.png"
                      alt="Spatial HF vision usage — FourRoomsHardDynamic, vc=2e-5 vs vc=1e-4">
               </figure>
               <p class="is-size-7 has-text-grey">
-                Spatial HF vision usage in FourRoomsHardDynamic. Orange/red = high-freq; blue = low-freq.
+                Spatial HF vision usage in FourRoomsHard.
                 Left column: vc = 2×10⁻⁵ &nbsp;|&nbsp; Right column: vc = 1×10⁻⁴.
                 Rows: all actions / forward only / turns only.
-                White diamonds mark doorways; grey squares are pillars; yellow square is the goal.
+                Grey squares are pillars; yellow square is the goal.
               </p>
             </div>
           </div>
 
           <p style="margin-top:1rem;">
-            A clear spatial structure emerges: Agent C v2 consistently activates high-frequency
-            perception around <strong>doorways</strong> and near <strong>pillars</strong>.
-            In open areas of rooms, the agent relies on low-frequency (stale) frames.
-            The effect is strongest for turning actions, suggesting the agent has learned that
-            navigating through narrow passages requires up-to-date visual information.
-            A higher vision cost (1×10⁻⁴) produces a more focused, selective pattern —
-            mostly concentrated near doorways — while the lower cost (2×10⁻⁵) shows broader
-            high-freq usage across the map.
+            A higher vision cost (1×10⁻⁴) produces a more focused, selective usage pattern,
+            whereas the lower cost (2×10⁻⁵) yields broader high-frequency usage across the map.
+            Two trends stand out in the high-cost (1×10⁻⁴) condition. First, Agent C v2
+            concentrates <strong>high-frequency turns in the tunnels</strong> connecting rooms,
+            suggesting it relies on fresh frames immediately after turning to navigate the
+            narrow passages. Second, high-frequency perception is far more <strong>prevalent</strong> during forward
+            motion (predominantly red) than during turns (predominantly blue), suggesting the
+            agent prioritises fresh vision while advancing to avoid collisions while relying on
+            its LSTM memory for in-place rotations. In the low-cost (2×10⁻⁵) condition, the
+            agent switches to <strong>low-frequency forward motion</strong> once it is near the goal,
+            suggesting that with a clear, familiar approach it no longer needs fresh frames
+            and can economise on perception.
           </p>
 
           <h4 class="title is-5" style="margin-top:1.5rem;">Training Curves — Agent C v2 (vc = 2×10⁻⁵)</h4>
