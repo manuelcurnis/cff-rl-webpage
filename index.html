@@ -113,16 +113,61 @@
     .ablation-neg { background: #f14668; color: #fff; }
     .ablation-pos { background: #48c78e; color: #fff; }
 
-    /* Results table grouping */
-    .table thead th { background: #4472c4; color: #fff; }
-    .table .group-header td {
-      background: #dce6f1;
+    /* Results table */
+    .perf-table-wrap {
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.93rem;
+      background: #fff;
+    }
+    .perf-table thead th {
+      background: #1e3a6e;
+      color: #fff !important;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 13px 18px;
+      text-align: center;
+      border: none;
+      white-space: nowrap;
+    }
+    .perf-table tbody td {
+      padding: 10px 18px;
+      border: none;
+      border-bottom: 1px solid #e8eef6;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .perf-table tbody tr:nth-child(even) td { background: #f4f7fc; }
+    .perf-table tbody tr:nth-child(odd) td { background: #ffffff; }
+    .perf-table .group-header td,
+    .perf-table .group-header th {
+      background: #dce6f1 !important;
       font-style: italic;
       font-weight: 700;
       text-align: center;
       color: #1f4e79;
+      padding: 9px 18px;
+      border: none;
+      border-bottom: 1px solid #c5d6ec;
     }
-    .table .best-row { font-weight: 700; }
+    .perf-table .group-header th {
+      background: #1e3a6e !important;
+      color: #fff !important;
+      font-style: normal;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 13px 18px;
+      white-space: nowrap;
+    }
+    .perf-table .best-row { font-weight: 700; }
 
     /* Section subtitles */
     .section-subtitle { color: #555; font-size: 1rem; margin-bottom: 1.5rem; }
@@ -588,8 +633,8 @@
             and mean collisions per episode (Hard Dynamic only).
           </p>
 
-          <div class="table-container">
-            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+          <div class="perf-table-wrap">
+            <table class="perf-table">
               <thead>
                 <tr>
                   <th>Agent</th>
@@ -597,55 +642,54 @@
                   <th>Steps</th>
                   <th>S&amp;Ls</th>
                   <th>HF Rate</th>
-                  <th>Collisions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="group-header"><td colspan="6">Easy Static</td></tr>
+                <tr class="group-header"><td colspan="5">Easy Static</td></tr>
                 <tr>
                   <td>Agent A (35 Hz)</td>
                   <td>0.984 ± 0.008</td>
-                  <td>59.17</td><td>—</td><td>—</td><td>—</td>
+                  <td>59.17</td><td>—</td><td>—</td>
                 </tr>
                 <tr>
                   <td>Agent B (5 Hz)</td>
                   <td>0.704 ± 0.038</td>
-                  <td>132.38</td><td>—</td><td>—</td><td>—</td>
+                  <td>132.38</td><td>—</td><td>—</td>
                 </tr>
                 <tr>
                   <td>Agent C v1</td>
                   <td>0.776 ± 0.008</td>
-                  <td>115.92</td><td>13.74</td><td>—</td><td>—</td>
+                  <td>115.92</td><td>13.74</td><td>—</td>
                 </tr>
                 <tr>
                   <td>Agent C v2</td>
                   <td>0.904 ± 0.034</td>
-                  <td>88.61</td><td>—</td><td>0.713</td><td>—</td>
+                  <td>88.61</td><td>—</td><td>0.713</td>
                 </tr>
 
-                <tr class="group-header"><td colspan="6">Hard Static</td></tr>
+                <tr class="group-header"><td colspan="5">Hard Static</td></tr>
                 <tr>
                   <td>Agent A (35 Hz)</td>
                   <td>0.840 ± 0.031</td>
-                  <td>345.25</td><td>—</td><td>—</td><td>—</td>
+                  <td>345.25</td><td>—</td><td>—</td>
                 </tr>
                 <tr>
                   <td>Agent B (5 Hz)</td>
                   <td>0.780 ± 0.042</td>
-                  <td>433.19</td><td>—</td><td>—</td><td>—</td>
+                  <td>433.19</td><td>—</td><td>—</td>
                 </tr>
                 <tr>
                   <td>C v2 (static-trained)</td>
                   <td>0.852 ± 0.055</td>
-                  <td>—</td><td>—</td><td>0.807</td><td>—</td>
+                  <td>—</td><td>—</td><td>0.807</td>
                 </tr>
                 <tr>
                   <td>C v2 (dynamic-trained)</td>
                   <td>0.888 ± 0.016</td>
-                  <td>258.18</td><td>—</td><td>0.842</td><td>—</td>
+                  <td>258.18</td><td>—</td><td>0.842</td>
                 </tr>
 
-                <tr class="group-header"><td colspan="6">Hard Dynamic</td></tr>
+                <tr class="group-header"><td colspan="5">Hard Dynamic</td><th>Collisions</th></tr>
                 <tr>
                   <td>Agent A (35 Hz)</td>
                   <td>0.933 ± 0.024</td>
